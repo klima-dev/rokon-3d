@@ -54,25 +54,68 @@ own feature group are on.
 
 ## Project structure
 
+The scene is split into small ES modules — a shared **foundation** (config, core, lib)
+that every building **element** imports, then one folder per element, plus the interaction
+layer. `rokon_gf_3d_v68.html` holds only markup + the import map and loads `src/main.js`.
+
 ```
 rokon-3d/
-├── rokon_gf_3d_v68.html   markup, import map, panel/compass/room UI
+├── rokon_gf_3d_v68.html        markup, import map, panel/compass/room UI
 ├── css/
-│   └── styles.css         all styling
+│   └── styles.css              all styling
 └── src/
-    └── main.js            the whole Three.js scene (~1400 lines)
+    ├── main.js                 orchestrator: build elements in order, wire UI, run loop
+    ├── config/
+    │   ├── dimensions.js        raw centrelines: X, Z, OUT, wall/column/height consts
+    │   └── geometry.js          derived consts: roads, colGrid, F1 envelope, façade bands, eye-view
+    ├── core/
+    │   ├── scene.js             scene, camera, renderer, labelRenderer, orbit, resize
+    │   ├── environment.js       PMREM RoomEnvironment (glass reflections)
+    │   ├── lights.js            hemisphere + directional sun
+    │   ├── materials.js         procedural textures + the M material dictionary
+    │   ├── groups.js            G.* toggle groups
+    │   └── registries.js        shared clickable[] + labelRegistry[] arrays
+    ├── lib/
+    │   ├── format.js            ftin() feet-and-inches formatter
+    │   ├── builders.js          box(), wall(), beam(), makeClickable()
+    │   └── labels.js            label(), addLabel(), dim()
+    ├── elements/
+    │   ├── ground/              ground plane, slab, reference grid
+    │   ├── roads/               north lane + main road (T-junction)
+    │   ├── roof/                ground-floor roof / 1st-floor slab
+    │   ├── zones/               7 clickable floor-tint rooms
+    │   ├── walls/               ground-floor walls
+    │   ├── columns/             columns + beams
+    │   ├── shutters/            shutters + gates
+    │   ├── stair/               switchback stair
+    │   ├── cantilevers/         1st-floor cantilever slabs
+    │   └── first-floor/
+    │       ├── index.js         builds the sub-parts in order
+    │       ├── helpers.js       f1Seg(), brickFace(), acpGlass(), GLASS_INFO/BRICK_INFO
+    │       ├── columns.js       stacked columns
+    │       ├── facade-north.js  main-block glass, step brick, shop-wing brick+window
+    │       ├── showcase.js      product display deck + L-corner glass showcase tower
+    │       ├── wall-west.js     brick + clerestory band + mullions + showcase glass
+    │       ├── walls-blind.js   blind east + south brick
+    │       ├── band.js          dark accent band
+    │       ├── floor.js         open floor plate + 1st-floor roof
+    │       ├── fin.js           corner signage pylon
+    │       └── sign.js          west wall sign fascia
+    ├── annotations/
+    │   ├── zone-labels.js       zone name tags
+    │   └── dimensions.js        dimension lines
+    └── interaction/
+        ├── state.js             shared mutable camera-mode flags (flying, headLook)
+        ├── panel.js             dropdown + Show toggles + label visibility
+        ├── selection.js         raycast click → info card
+        ├── views.js             view presets (setView)
+        ├── fly.js               free-fly look + movement
+        ├── eye-level.js         fixed-position head-look
+        └── compass.js           compass dial update
 ```
 
-`src/main.js` is organized top-to-bottom as:
-
-1. **Dimensions** — `X` / `Z` centreline coordinates (the single source of truth, from the PDF).
-2. **Scene / renderer / lights** — shadows, ACES tone mapping, procedural `RoomEnvironment`.
-3. **Textures & materials** — canvas-drawn brick/concrete/plaster; the `M` material dictionary.
-4. **Geometry** — ground & slabs, zone tints, walls, columns + beams, shutters/gates, the
-   switchback stair, cantilevers, then the full first-floor envelope and façade.
-5. **Interaction** — panel toggles, raycast click → info card, camera view presets, free-fly
-   and eye-level camera modes.
-6. **Loop** — animates the camera, updates the SVG compass, renders the WebGL + CSS2D layers.
+Build order lives in `src/main.js`: each element module exports a `build()` that adds its
+meshes via the shared helpers; each interaction module exports an `init()`.
 
 ---
 
@@ -83,13 +126,58 @@ you touch geometry:
 
 - `+X` = **west** (so `X.e` is the west face, where the 5′ cantilever sits); `X.w` = east.
 - `+Z` = **south** (`Z.n` = back-showroom rear, `Z.shopS` = street frontage); `Y` = up.
-- **Real site north is the shop/street side** (`Z.shopS`). Rather than rename hundreds of
-  lines, only the on-screen **compass display** is remapped to the true site. So the compass
-  reads correctly, but code comments and info-card text still use the raw axis names
-  ("north wall" = `Z.n`, "west wall" = `X.e`). Treat those as internal labels, not directions.
+- **Real site north is the shop/street side** (`Z.shopS`). Only the on-screen **compass
+  display** is remapped to true site north; code comments and info-card text still use the
+  raw axis names ("north wall" = `Z.n`, "west wall" = `X.e`). Treat those as internal labels.
 
 Anything at first-floor level goes into the `G.f1` group (or a new group stacked at
-`y = H + SLAB`) so the ground floor stays independently toggleable.
+`y = F1_FFL`) so the ground floor stays independently toggleable.
+
+---
+
+## Contributing / editing the scene
+
+A few conventions keep edits from breaking things:
+
+### Where things live
+- **Constants** — `config/dimensions.js` (raw centrelines) and `config/geometry.js` (derived
+  values). These are the single source of truth; change a value here and everything that
+  references it moves together. Never hardcode a coordinate in an element file.
+- **Materials** (`core/materials.js`) are shared across meshes. **Don't mutate a shared
+  material for a one-off effect** — `mat.clone()` first.
+- **Groups** (`core/groups.js`) — add meshes via `box()`/`wall()` into a `G.*` group (never
+  straight to the scene) so the panel can toggle them.
+
+### Adding a clickable element
+Selection highlighting mutates the mesh's material, so a clickable **must own its material**.
+Use `makeClickable(mesh)` from `lib/builders.js` — it clones the material and registers the
+mesh with the raycaster. Set `mesh.userData` before registering:
+
+```js
+import { box, makeClickable } from '../../lib/builders.js';
+const m = box(w, SLAB, dp, x, y, z, M.roof, G.roof);
+m.userData = {
+  color: 0xc8552f, name: 'My element',
+  dim: `${ftin(w)} × ${ftin(dp)}`, area: `${Math.round(w*dp)} sf`,
+  details: ['line one', 'line two'],
+  baseOpacity: 0.42,   // <1 highlights by going more solid; 1 glows via emissive
+};
+makeClickable(m);
+```
+
+### Adding a label / dimension
+Use `addLabel(group, text, x, y, z, cls)` and `dim(x1,z1,x2,z2,text)` from `lib/labels.js`
+so tags register with the master **Labels** toggle. Never set a tag's `element.style.display`
+by hand — `CSS2DRenderer` overwrites it from `object.visible` every frame.
+
+### Adding a view preset
+1. Add a `<button class="btn" id="v-name">Label</button>` in the *View* group in the HTML.
+2. Wire it in `interaction/views.js`:
+   `document.getElementById('v-name').onclick = () => setView([x,y,z],[tx,ty,tz], fov);`
+
+### Adding a whole new element
+Create `src/elements/<name>/index.js` exporting `build()`, then import it in `src/main.js`
+and call `<name>.build()` in the build sequence.
 
 ---
 
@@ -98,62 +186,6 @@ Anything at first-floor level goes into the `G.f1` group (or a new group stacked
 - **Three.js 0.160.0** (ES module + addons: `OrbitControls`, `CSS2DRenderer`, `RoomEnvironment`),
   via jsDelivr and an inline import map.
 - No bundler, no dependencies to install, no framework.
-
----
-
-## Contributing / editing the scene
-
-All geometry lives in `src/main.js`. A few conventions keep edits from breaking things:
-
-### Groups (`G.*`)
-Every mesh is added to a named group so the panel can toggle it: `walls`, `cols`, `stair`,
-`shutter`, `labels`, `dims`, `grid`, `zones`, `base`, `roof`, `f1`, `road`. Add a mesh with
-the `box(w, h, dp, x, y, z, mat, group)` helper (or `wall(x1,z1,x2,z2)`), passing the right
-group — never `scene` directly, or your mesh can't be toggled. `y` is the **bottom** of the
-box; `box` offsets by `h/2` internally.
-
-### Materials (`M.*`)
-Materials are shared across many meshes for performance. **Do not mutate a shared material
-for a one-off effect** — you'll change every mesh using it. If a mesh needs its own look,
-`mat.clone()` it first.
-
-### Adding a clickable element
-Selection highlighting mutates the mesh's material, so a clickable **must own its material**.
-Use the `makeClickable(mesh)` helper — it clones the material and registers the mesh with the
-raycaster. Set `mesh.userData` before registering:
-
-```js
-const m = box(w, SLAB, dp, x, H, z, M.roof, G.roof);
-m.userData = {
-  color: 0xc8552f,        // swatch shown in the info card
-  name: 'My element',
-  dim:  `${ftin(w)} × ${ftin(dp)}`,
-  area: `${Math.round(w * dp)} sf`,
-  details: ['line one', 'line two'],   // bulleted list in the card
-  baseOpacity: 0.42,      // <1 highlights by going more solid; 1 glows via emissive
-};
-makeClickable(m);
-```
-
-`baseOpacity` matters: translucent elements (`< 1`) highlight by increasing opacity; opaque
-ones (`= 1`) can't, so they highlight with an emissive glow instead (see `paintSelection`).
-
-### Adding a label or dimension
-Use `addLabel(group, text, x, y, z, cls)` (not raw `CSS2DObject`) so the tag is registered
-and obeys the master **Labels** toggle. For dimension lines use `dim(x1,z1,x2,z2,text)`.
-Never set a tag's `element.style.display` by hand — `CSS2DRenderer` overwrites it from
-`object.visible` every frame; toggle `object.visible` instead.
-
-### Adding a view preset
-1. Add a `<button class="btn" id="v-name">Label</button>` in the *View* group in the HTML.
-2. Wire it in `main.js`: `document.getElementById('v-name').onclick = () => setView([x,y,z], [tx,ty,tz], fov);`
-   `setView` clears fly/eye-lock modes for you. `CX` / `CZ` are the building centre.
-
-### Editing dimensions
-`X` and `Z` (near the top of `main.js`) are the single source of truth. Change a centreline
-there and the walls, columns, beams, tints and cantilevers that reference it all move
-together — don't hardcode coordinates elsewhere. Remember the rotated axes (see
-*Coordinate & compass conventions* above).
 
 ---
 
