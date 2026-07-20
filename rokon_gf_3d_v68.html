@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rokon — Ground Floor 3D (v15)</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app"></div>
+
+<div id="compass" aria-hidden="true">
+  <svg viewBox="0 0 76 76" width="76" height="76">
+    <circle class="face" cx="38" cy="38" r="34"/>
+    <g id="compass-ticks">
+      <line class="tick" x1="38" y1="8"  x2="38" y2="14"/>
+      <line class="tick" x1="38" y1="62" x2="38" y2="68"/>
+      <line class="tick" x1="8"  y1="38" x2="14" y2="38"/>
+      <line class="tick" x1="62" y1="38" x2="68" y2="38"/>
+    </g>
+    <text id="cp-n" text-anchor="middle" dominant-baseline="central">S</text>
+    <text id="cp-e" text-anchor="middle" dominant-baseline="central">W</text>
+    <text class="n" id="cp-s" text-anchor="middle" dominant-baseline="central">N</text>
+    <text id="cp-w" text-anchor="middle" dominant-baseline="central">E</text>
+    <polygon points="38,2 34,12 42,12" fill="var(--ink)"/>
+  </svg>
+</div>
+
+<div class="panel" id="panel">
+  <div class="panel-head" id="panel-toggle">
+    <h1>Rokon — ground floor
+      <small>40'-4" &times; 47'-10" &middot; 1 unit = 1 ft</small>
+    </h1>
+    <svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+
+  <div class="panel-body"><div>
+    <div class="grp"><span>Show</span>
+      <label><input type="checkbox" id="t-walls" checked> Walls</label>
+      <label><input type="checkbox" id="t-cols" checked> Columns &amp; beams</label>
+      <label><input type="checkbox" id="t-stair" checked> Stair</label>
+      <label><input type="checkbox" id="t-roof" checked> Roof + cantilever</label>
+      <label><input type="checkbox" id="t-f1" checked> First floor</label>
+      <label><input type="checkbox" id="t-road" checked> North road</label>
+      <label><input type="checkbox" id="t-shutter" checked> Shutters &amp; gates</label>
+      <label><input type="checkbox" id="t-labels"> Labels</label>
+      <label><input type="checkbox" id="t-dims"> Dimensions</label>
+      <label><input type="checkbox" id="t-grid" checked> Ground grid</label>
+    </div>
+
+    <div class="grp"><span>View</span>
+      <button class="btn" id="v-road">Main road view</button>
+      <button class="btn" id="v-wn">West – North view</button>
+      <button class="btn" id="v-iso">Isometric</button>
+      <button class="btn" id="v-eye">Eye-level 5′5″ (Locked)</button>
+      <button class="btn" id="v-site">Site + roads</button>
+      <button class="btn" id="v-plan">Top / plan</button>
+      <button class="btn" id="v-front">Front (south)</button>
+      <button class="btn" id="v-fly">Free-fly walkthrough</button>
+    </div>
+  </div></div>
+</div>
+
+<div class="hint">Drag to orbit · scroll to zoom · right-drag to pan</div>
+<div id="ff">Mouse aims · WASD / arrows move · Q E down/up · Shift sprint · Esc to exit</div>
+<div id="crosshair"></div>
+
+<div id="room">
+  <button class="r-close" id="room-close" aria-label="Close">&times;</button>
+  <span class="r-sw" id="room-sw"></span><h2 id="room-name" style="display:inline"></h2>
+  <div class="r-dim" id="room-dim"></div>
+  <div class="r-area" id="room-area"></div>
+  <ul class="r-list" id="room-details"></ul>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
