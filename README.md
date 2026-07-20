@@ -101,6 +101,62 @@ Anything at first-floor level goes into the `G.f1` group (or a new group stacked
 
 ---
 
+## Contributing / editing the scene
+
+All geometry lives in `src/main.js`. A few conventions keep edits from breaking things:
+
+### Groups (`G.*`)
+Every mesh is added to a named group so the panel can toggle it: `walls`, `cols`, `stair`,
+`shutter`, `labels`, `dims`, `grid`, `zones`, `base`, `roof`, `f1`, `road`. Add a mesh with
+the `box(w, h, dp, x, y, z, mat, group)` helper (or `wall(x1,z1,x2,z2)`), passing the right
+group — never `scene` directly, or your mesh can't be toggled. `y` is the **bottom** of the
+box; `box` offsets by `h/2` internally.
+
+### Materials (`M.*`)
+Materials are shared across many meshes for performance. **Do not mutate a shared material
+for a one-off effect** — you'll change every mesh using it. If a mesh needs its own look,
+`mat.clone()` it first.
+
+### Adding a clickable element
+Selection highlighting mutates the mesh's material, so a clickable **must own its material**.
+Use the `makeClickable(mesh)` helper — it clones the material and registers the mesh with the
+raycaster. Set `mesh.userData` before registering:
+
+```js
+const m = box(w, SLAB, dp, x, H, z, M.roof, G.roof);
+m.userData = {
+  color: 0xc8552f,        // swatch shown in the info card
+  name: 'My element',
+  dim:  `${ftin(w)} × ${ftin(dp)}`,
+  area: `${Math.round(w * dp)} sf`,
+  details: ['line one', 'line two'],   // bulleted list in the card
+  baseOpacity: 0.42,      // <1 highlights by going more solid; 1 glows via emissive
+};
+makeClickable(m);
+```
+
+`baseOpacity` matters: translucent elements (`< 1`) highlight by increasing opacity; opaque
+ones (`= 1`) can't, so they highlight with an emissive glow instead (see `paintSelection`).
+
+### Adding a label or dimension
+Use `addLabel(group, text, x, y, z, cls)` (not raw `CSS2DObject`) so the tag is registered
+and obeys the master **Labels** toggle. For dimension lines use `dim(x1,z1,x2,z2,text)`.
+Never set a tag's `element.style.display` by hand — `CSS2DRenderer` overwrites it from
+`object.visible` every frame; toggle `object.visible` instead.
+
+### Adding a view preset
+1. Add a `<button class="btn" id="v-name">Label</button>` in the *View* group in the HTML.
+2. Wire it in `main.js`: `document.getElementById('v-name').onclick = () => setView([x,y,z], [tx,ty,tz], fov);`
+   `setView` clears fly/eye-lock modes for you. `CX` / `CZ` are the building centre.
+
+### Editing dimensions
+`X` and `Z` (near the top of `main.js`) are the single source of truth. Change a centreline
+there and the walls, columns, beams, tints and cantilevers that reference it all move
+together — don't hardcode coordinates elsewhere. Remember the rotated axes (see
+*Coordinate & compass conventions* above).
+
+---
+
 ## License
 
 No license specified. Add one if you intend to share or reuse.
