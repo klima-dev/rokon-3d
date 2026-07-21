@@ -17,7 +17,6 @@
    Cantilevers (dashed on plan, upper floor only): 5' west · 4' south · 4' shop
    ========================================================================== */
 
-export const FT = 1;
 export const WT   = 0.833;      // 10" wall
 export const COL  = 1.0;        // 12" x 12" column
 export const H    = 10.5;       // ground floor height, floor to u/s of 1st slab

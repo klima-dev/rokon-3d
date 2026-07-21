@@ -37,7 +37,6 @@ export const colGrid = [
 /* --- first floor envelope ------------------------------------------------- */
 export const F1_FFL = H + SLAB;          // 11'-0" — 1st floor finished floor
 export const F1_WT  = 0.5;               // envelope thickness
-export const ACP_SILL = 2.5, ACP_HEAD = 1.5;   // ACP bands below/above the glazing
 
 export const F1 = {
   xE: OUT.x0,                          // site EAST  edge
