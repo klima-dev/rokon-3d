@@ -18,7 +18,7 @@ Because it uses ES-module imports from a CDN, open it over **http\://**, not `fi
 ```bash
 # from the repo root — any static server works
 python -m http.server 8000
-# then open http://localhost:8000/rokon_gf_3d_v68.html
+# then open http://localhost:8000/  (serves index.html automatically)
 ```
 
 Or use the VS Code "Live Server" extension, `npx serve`, etc. First load needs internet
@@ -56,11 +56,11 @@ own feature group are on.
 
 The scene is split into small ES modules — a shared **foundation** (config, core, lib)
 that every building **element** imports, then one folder per element, plus the interaction
-layer. `rokon_gf_3d_v68.html` holds only markup + the import map and loads `src/main.js`.
+layer. `index.html` holds only markup + the import map and loads `src/main.js`.
 
 ```
 rokon-3d/
-├── rokon_gf_3d_v68.html        markup, import map, panel/compass/room UI
+├── index.html                  markup, import map, panel/compass/room UI
 ├── css/
 │   └── styles.css              all styling
 └── src/
