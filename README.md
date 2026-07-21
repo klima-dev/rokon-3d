@@ -2,8 +2,8 @@
 
 An interactive Three.js model of the **Rokon** building (ground floor + first floor),
 built from the `ROKON_GF-1.pdf` drawings. It runs in any modern browser with **no build
-step** — native ES modules loaded via an import map, Three.js pulled from a CDN, and all
-textures drawn procedurally in-code so it works offline once the CDN is cached.
+step** — native ES modules loaded via an import map, Three.js vendored in `vendor/`, and all
+textures drawn procedurally in-code, so it works fully offline with no external requests.
 
 Everything is modelled in **decimal feet** (1 scene unit = 1 ft). Overall footprint
 40′-4″ × 47′-10″.
@@ -12,8 +12,8 @@ Everything is modelled in **decimal feet** (1 scene unit = 1 ft). Overall footpr
 
 ## Quick start
 
-Because it uses ES-module imports from a CDN, open it over **http\://**, not `file://`
-(browsers block module/CDN loads from the filesystem).
+Because it uses ES-module imports, open it over **http\://**, not `file://`
+(browsers block module loads from the filesystem).
 
 ```bash
 # from the repo root — any static server works
@@ -21,8 +21,8 @@ python -m http.server 8000
 # then open http://localhost:8000/  (serves index.html automatically)
 ```
 
-Or use the VS Code "Live Server" extension, `npx serve`, etc. First load needs internet
-(Three.js from jsDelivr); after that the browser cache covers it.
+Or use the VS Code "Live Server" extension, `npx serve`, etc. No internet needed —
+Three.js is vendored in `vendor/`, so it runs fully offline.
 
 ---
 
@@ -67,7 +67,8 @@ rokon-3d/
     ├── main.js                 orchestrator: build elements in order, wire UI, run loop
     ├── config/
     │   ├── dimensions.js        raw centrelines: X, Z, OUT, wall/column/height consts
-    │   └── geometry.js          derived consts: roads, colGrid, F1 envelope, façade bands, eye-view
+    │   ├── geometry.js          derived consts: roads, colGrid, F1 envelope, façade bands, eye-view
+    │   └── rooms.js             the 7 ground-floor rooms (bounds, colour, details, label)
     ├── core/
     │   ├── scene.js             scene, camera, renderer, labelRenderer, orbit, resize
     │   ├── environment.js       PMREM RoomEnvironment (glass reflections)
@@ -83,7 +84,7 @@ rokon-3d/
     │   ├── ground/              ground plane, slab, reference grid
     │   ├── roads/               north lane + main road (T-junction)
     │   ├── roof/                ground-floor roof / 1st-floor slab
-    │   ├── zones/               7 clickable floor-tint rooms
+    │   ├── zones/               7 clickable floor-tint rooms (from config/rooms.js)
     │   ├── walls/               ground-floor walls
     │   ├── columns/             columns + beams
     │   ├── shutters/            shutters + gates
@@ -102,7 +103,7 @@ rokon-3d/
     │       ├── fin.js           corner signage pylon
     │       └── sign.js          west wall sign fascia
     ├── annotations/
-    │   ├── zone-labels.js       zone name tags
+    │   ├── zone-labels.js       zone name tags (from config/rooms.js)
     │   └── dimensions.js        dimension lines
     └── interaction/
         ├── state.js             shared mutable camera-mode flags (flying, headLook)
@@ -184,8 +185,12 @@ and call `<name>.build()` in the build sequence.
 ## Tech
 
 - **Three.js 0.160.0** (ES module + addons: `OrbitControls`, `CSS2DRenderer`, `RoomEnvironment`),
-  via jsDelivr and an inline import map.
-- No bundler, no dependencies to install, no framework.
+  vendored in `vendor/` and wired through an inline import map.
+- No bundler, no dependencies to install, no framework, no external requests.
+
+To update Three.js: replace the four files in `vendor/` from
+`https://cdn.jsdelivr.net/npm/three@<version>/` (`build/three.module.js` and the three
+`examples/jsm/…` addons) — no import changes needed.
 
 ---
 

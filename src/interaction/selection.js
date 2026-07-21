@@ -13,6 +13,9 @@ const raycaster = new THREE.Raycaster();
 const pointerNDC = new THREE.Vector2();
 let selected = null;
 
+// true only if the object AND every ancestor up to the scene is visible
+const isVisible = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
+
 function paintSelection(mesh, on) {
   const b = mesh.userData.baseOpacity;
   // Translucent things (zone tints, roof, glass) highlight best by going more
@@ -58,7 +61,11 @@ export function init() {
     pointerNDC.x = ((e.clientX - r.left) / r.width) * 2 - 1;
     pointerNDC.y = -((e.clientY - r.top) / r.height) * 2 + 1;
     raycaster.setFromCamera(pointerNDC, camera);
-    const hits = raycaster.intersectObjects(clickable, false);
+    // Only hit meshes whose whole ancestor chain is visible. intersectObjects
+    // checks a mesh's own .visible but NOT its parent group's, so without this a
+    // click would select an element hidden by its Show toggle (e.g. the roof
+    // while "First floor"/"Roof" is off).
+    const hits = raycaster.intersectObjects(clickable.filter(isVisible), false);
     if (hits.length) showRoom(hits[0].object);
     else hideRoom();
   });

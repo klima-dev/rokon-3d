@@ -11,8 +11,7 @@ const cv = renderer.domElement;
 // camera modes so orbit takes over.
 export function setView(pos, tgt, fov = 45) {
   exitFly();
-  state.eyeLock = false;   // any preset clears eye-lock unless it re-sets it
-  state.headLook = false;  // and clears head-look
+  state.headLook = false;  // any preset clears head-look
   cv.style.cursor = 'grab';
   if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   camera.position.set(...pos);
@@ -35,7 +34,6 @@ export function init() {
   document.getElementById('v-eye').onclick    = () => {
     exitFly();
     orbit.enabled = false;
-    state.eyeLock = false;
     camera.fov = 50; camera.updateProjectionMatrix();
     camera.position.set(T_X, EYE_Y, T_Z);
     camera.lookAt(F1_XW, EYE_Y, T_Z);

@@ -3,10 +3,7 @@ import { ftin } from '../../lib/format.js';
 import { G } from '../../core/groups.js';
 import { M } from '../../core/materials.js';
 import { H1 } from '../../config/dimensions.js';
-import {
-  F1_WT, F1_FFL, ACP_SILL, ACP_HEAD,
-  SILL, GH, HEAD, WHITE_T, REVEAL,
-} from '../../config/geometry.js';
+import { F1_WT, F1_FFL, SILL, GH, HEAD, WHITE_T, REVEAL } from '../../config/geometry.js';
 
 // A vertical envelope segment along (x1,z1)->(x2,z2). Clickable segments get
 // their OWN material instance (via mat.clone()) so highlighting one doesn't
@@ -29,13 +26,6 @@ export function f1Seg(x1, z1, x2, z2, y, h, mat, info) {
   return m;
 }
 
-// ACP band / glazing / ACP band stack — kept for any face that wants it.
-export function acpGlass(x1, z1, x2, z2, info) {
-  f1Seg(x1, z1, x2, z2, F1_FFL, ACP_SILL, M.acp);
-  f1Seg(x1, z1, x2, z2, F1_FFL + ACP_SILL, H1 - ACP_SILL - ACP_HEAD, M.glass, info);
-  f1Seg(x1, z1, x2, z2, F1_FFL + H1 - ACP_HEAD, ACP_HEAD, M.acp);
-}
-
 export const GLASS_INFO = d => ({ color: 0x9ec6d4, baseOpacity: 0.30, ...d });
 export const BRICK_INFO = d => ({ color: 0xf0ede6, baseOpacity: 1, ...d });
 
@@ -53,7 +43,6 @@ export function brickFace(x1, z1, x2, z2, glassInfo, inset, bays) {
   const t = inset/len;
   const wx1 = x1 + (x2-x1)*t, wz1 = z1 + (z2-z1)*t;
   const wx2 = x2 - (x2-x1)*t, wz2 = z2 - (z2-z1)*t;
-  const wlen = Math.hypot(wx2-wx1, wz2-wz1);
   // 2. recessed glass (sits back via REVEAL along the normal)
   f1Seg(wx1 - nx*REVEAL, wz1 - nz*REVEAL, wx2 - nx*REVEAL, wz2 - nz*REVEAL,
         SILL, GH, M.glass, glassInfo);
