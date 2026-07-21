@@ -67,7 +67,8 @@ rokon-3d/
     ├── main.js                 orchestrator: build elements in order, wire UI, run loop
     ├── config/
     │   ├── dimensions.js        raw centrelines: X, Z, OUT, wall/column/height consts
-    │   └── geometry.js          derived consts: roads, colGrid, F1 envelope, façade bands, eye-view
+    │   ├── geometry.js          derived consts: roads, colGrid, F1 envelope, façade bands, eye-view
+    │   └── rooms.js             the 7 ground-floor rooms (bounds, colour, details, label)
     ├── core/
     │   ├── scene.js             scene, camera, renderer, labelRenderer, orbit, resize
     │   ├── environment.js       PMREM RoomEnvironment (glass reflections)
@@ -83,7 +84,7 @@ rokon-3d/
     │   ├── ground/              ground plane, slab, reference grid
     │   ├── roads/               north lane + main road (T-junction)
     │   ├── roof/                ground-floor roof / 1st-floor slab
-    │   ├── zones/               7 clickable floor-tint rooms
+    │   ├── zones/               7 clickable floor-tint rooms (from config/rooms.js)
     │   ├── walls/               ground-floor walls
     │   ├── columns/             columns + beams
     │   ├── shutters/            shutters + gates
@@ -102,7 +103,7 @@ rokon-3d/
     │       ├── fin.js           corner signage pylon
     │       └── sign.js          west wall sign fascia
     ├── annotations/
-    │   ├── zone-labels.js       zone name tags
+    │   ├── zone-labels.js       zone name tags (from config/rooms.js)
     │   └── dimensions.js        dimension lines
     └── interaction/
         ├── state.js             shared mutable camera-mode flags (flying, headLook)
