@@ -69,7 +69,6 @@ export const M = {
   roof   : new THREE.MeshStandardMaterial({ color:0xc8552f, roughness:0.9,
              transparent:true, opacity:0.42, side:THREE.DoubleSide }),
   // 1st floor envelope
-  acp    : new THREE.MeshStandardMaterial({ color:0x1f4e8c, roughness:0.3, metalness:0.55 }),
   glass  : new THREE.MeshPhysicalMaterial({ color:0xbfe0ec, roughness:0.06, metalness:0,
              transmission:0.82, thickness:0.4, ior:1.5, reflectivity:0.55,
              clearcoat:1.0, clearcoatRoughness:0.06,
@@ -86,7 +85,6 @@ export const M = {
   sign   : new THREE.MeshStandardMaterial({ color:0xf4f1ea, roughness:0.5 }),
   disp   : new THREE.MeshStandardMaterial({ color:0x2a2d33, roughness:0.6 }),      // display platform
   prod   : new THREE.MeshStandardMaterial({ color:0x143d7a, roughness:0.5, metalness:0.2 }), // product blocks
-  relief : new THREE.MeshStandardMaterial({ color:0xd6dde3, roughness:0.95 }),
   road   : new THREE.MeshStandardMaterial({ color:0x4a4844, roughness:0.95 }),
   roadln : new THREE.MeshStandardMaterial({ color:0xd8d2b8, roughness:0.9 }),
 };

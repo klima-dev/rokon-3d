@@ -5,5 +5,4 @@
 export const state = {
   flying: false,   // free-fly walkthrough active
   headLook: false, // fixed-position eye-level head-look active
-  eyeLock: false,  // (vestigial) orbit-based eye lock — kept for setView parity
 };
