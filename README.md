@@ -82,7 +82,8 @@ rokon-3d/
     ├── lib/
     │   ├── format.js            ftin() feet-and-inches formatter
     │   ├── builders.js          box(), wall(), beam(), makeClickable()
-    │   └── labels.js            label(), addLabel(), dim()
+    │   ├── labels.js            label(), addLabel(), dim()
+    │   └── loadModel.js         loadModel() — GLTFLoader helper for .glb models
     ├── elements/
     │   ├── ground/              ground plane, slab, reference grid
     │   ├── roads/               north lane + main road (T-junction)
@@ -115,7 +116,8 @@ rokon-3d/
         ├── views.js             view presets (setView)
         ├── fly.js               free-fly look + movement
         ├── eye-level.js         fixed-position head-look
-        └── compass.js           compass dial update
+        ├── compass.js           compass dial update
+        └── gui.js               lil-gui live tweak panel (sun / glass / fog)
 ```
 
 Build order lives in `src/main.js`: each element module exports a `build()` that adds its
@@ -187,9 +189,12 @@ and call `<name>.build()` in the build sequence.
 
 ## Tech
 
-- **Three.js 0.160.0** (ES module + addons: `OrbitControls`, `CSS2DRenderer`, `RoomEnvironment`),
-  vendored in `vendor/` and wired through an inline import map.
-- No bundler, no dependencies to install, no framework, no external requests.
+- **Three.js 0.160.0** (ES module + addons: `OrbitControls`, `CSS2DRenderer`, `RoomEnvironment`,
+  `GLTFLoader`), vendored in `vendor/` and wired through an inline import map.
+- **lil-gui 0.19.2** — the live tweak panel — also vendored (`vendor/lil-gui.esm.js`).
+- No bundler, no dependencies to install, no framework, no external requests. Any new
+  dependency is vendored the same way: a native ES module in `vendor/`, served locally
+  (never a runtime CDN import), plus an import-map entry for non-addon libs.
 
 To update Three.js: replace the four files in `vendor/` from
 `https://cdn.jsdelivr.net/npm/three@<version>/` (`build/three.module.js` and the three

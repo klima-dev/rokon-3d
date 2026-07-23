@@ -52,10 +52,10 @@ src/
 │   ├── geometry.js    derived consts (roads, column grid, F1 envelope, façade bands)
 │   └── rooms.js       the 7 ground-floor rooms — feeds BOTH zone tints and labels
 ├── core/              scene, camera, renderer, environment, lights, materials (M), groups (G), registries
-├── lib/               builders (box/wall/beam/makeClickable), labels (label/addLabel/dim), format (ftin)
+├── lib/               builders (box/wall/beam/makeClickable), labels (label/addLabel/dim), format (ftin), loadModel (GLTFLoader helper)
 ├── elements/<name>/   one folder per building element; each exports build()
 ├── annotations/       zone-labels.js, dimensions.js — each exports build()
-└── interaction/       panel, selection, views, fly, eye-level, compass, state; each exports init()
+└── interaction/       panel, selection, views, fly, eye-level, compass, state, gui (lil-gui tweak panel); each exports init()
 ```
 
 The full file-by-file breakdown is in `README.md` — don't duplicate it, reference it.
@@ -156,6 +156,31 @@ map in `index.html` (`three` → `vendor/three.module.js`, `three/addons/` →
 `vendor/addons/`). To bump the version, replace the four files in `vendor/` from
 `https://cdn.jsdelivr.net/npm/three@<version>/` (`build/three.module.js` plus the
 three `examples/jsm/…` addons) — no import changes needed.
+
+**Adding a dependency = vendoring, not npm.** There is no bundler, so a dependency
+must be a native ES module dropped into `vendor/` and served locally (never a
+runtime CDN import — that breaks the offline guarantee). Two flavours:
+
+- A **Three.js addon** (`examples/jsm/…`): copy it under `vendor/addons/…` and it
+  resolves through the existing `three/addons/` map with no import-map change.
+  Mind transitive addon imports — e.g. `GLTFLoader.js` also needs
+  `vendor/addons/utils/BufferGeometryUtils.js`. Version must match Three 0.160.0.
+- A **third-party lib**: vendor its ESM build and add one line to the import map.
+  `lil-gui@0.19.2` is wired this way (`"lil-gui" → vendor/lil-gui.esm.js`).
+
+Currently vendored beyond core Three.js: **GLTFLoader** (+ BufferGeometryUtils),
+used by `lib/loadModel.js`; **lil-gui**, used by `interaction/gui.js`.
+
+## Common tasks (extras)
+
+**Load a real 3D model (GLTF)** — put a `.glb` under `assets/models/` and call
+`loadModel(url, { position, scale, rotationY })` from `lib/loadModel.js` (async;
+adds to the toggleable `G.models` group). Keep the URL relative/same-origin so
+the scene stays offline. See the commented example in `src/main.js`.
+
+**Add a live tweak control** — extend `interaction/gui.js`: `gui.add(obj, 'prop',
+min, max, step)` writes straight to a live Three.js object (sun, `scene.fog`,
+`M.glass`, …). The panel starts collapsed, bottom-right.
 
 ## Git workflow
 

@@ -30,6 +30,8 @@ import * as views from './interaction/views.js';
 import * as fly from './interaction/fly.js';
 import * as eyeLevel from './interaction/eye-level.js';
 import * as compass from './interaction/compass.js';
+import * as gui from './interaction/gui.js';
+// import { loadModel } from './lib/loadModel.js';   // drop real .glb models in
 
 /* ---------- build the world ---------- */
 ground.build();
@@ -51,6 +53,10 @@ selection.init();
 views.init();
 fly.init();
 eyeLevel.init();
+gui.init();
+
+// Drop a real 3D model into the scene (put .glb files under assets/models/):
+// loadModel('assets/models/chair.glb', { position:[20, 0, 30], scale:1, rotationY:Math.PI });
 
 views.setView([CX+115, 6, CZ+28], [CX+6, 13, CZ+6]);   // open on the Main road view
 
