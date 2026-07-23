@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { LOW_POWER } from './device.js';
 
 /* ---------- procedural textures (canvas-drawn, no external files) ---------- */
 // Real photo textures would need external downloads; these are drawn in-code so
@@ -68,13 +69,22 @@ export const M = {
   // translucent so the ground floor stays readable underneath.
   roof   : new THREE.MeshStandardMaterial({ color:0xc8552f, roughness:0.9,
              transparent:true, opacity:0.42, side:THREE.DoubleSide }),
-  // 1st floor envelope
-  glass  : new THREE.MeshPhysicalMaterial({ color:0xbfe0ec, roughness:0.06, metalness:0,
-             transmission:0.82, thickness:0.4, ior:1.5, reflectivity:0.55,
-             clearcoat:1.0, clearcoatRoughness:0.06,
-             transparent:true, opacity:0.62, side:THREE.DoubleSide,
-             envMapIntensity:1.2,
-             polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 }),
+  // 1st floor envelope.
+  // Desktop uses real refraction (transmission), which makes Three re-render the
+  // whole scene into a transmission buffer every frame — too costly for mobile
+  // GPUs. On low-power devices we fall back to plain reflective translucent
+  // glass (no transmission pass): still see-through and shiny against the baked
+  // RoomEnvironment, visually close, but with none of the per-frame overhead.
+  glass  : LOW_POWER
+    ? new THREE.MeshStandardMaterial({ color:0xbfe0ec, roughness:0.1, metalness:0.2,
+        transparent:true, opacity:0.5, side:THREE.DoubleSide, envMapIntensity:1.1,
+        polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 })
+    : new THREE.MeshPhysicalMaterial({ color:0xbfe0ec, roughness:0.06, metalness:0,
+        transmission:0.82, thickness:0.4, ior:1.5, reflectivity:0.55,
+        clearcoat:1.0, clearcoatRoughness:0.06,
+        transparent:true, opacity:0.62, side:THREE.DoubleSide,
+        envMapIntensity:1.2,
+        polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 }),
   brick  : new THREE.MeshStandardMaterial({ color:0xf0ede6, roughness:0.92 }),
   // north-facade brick-frame scheme
   brickR : new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.9, map:TEX.brickR }),    // light blue front wall

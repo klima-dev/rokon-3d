@@ -109,6 +109,15 @@ These are the non-obvious rules. Violating them silently breaks the scene.
   floor tints (`elements/zones`) and the name tags (`annotations/zone-labels`).
   Order matters — it fixes build order.
 
+## Performance tiers (mobile)
+
+`core/device.js` exports **`LOW_POWER`** (true on coarse-pointer/touch devices).
+It's the single switch for the cheaper render path: `core/scene.js` (antialias,
+`logarithmicDepthBuffer`, pixel-ratio cap, shadows), `core/lights.js` (shadow
+casting), and `core/materials.js` (`M.glass` falls back from transmission
+refraction to plain reflective glass) each branch on it. Desktop is unaffected.
+When adding an expensive material or effect, gate it on `LOW_POWER` the same way.
+
 ## Common tasks
 
 **Add a clickable element** — build a mesh into a group, set `userData`, register:
