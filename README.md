@@ -8,6 +8,9 @@ textures drawn procedurally in-code, so it works fully offline with no external 
 Everything is modelled in **decimal feet** (1 scene unit = 1 ft). Overall footprint
 40′-4″ × 47′-10″.
 
+**Live site:** https://klima-dev.github.io/rokon-3d/ — deployed from `main` on every
+push by the GitHub Actions workflow in `.github/workflows/static.yml`.
+
 ---
 
 ## Quick start
