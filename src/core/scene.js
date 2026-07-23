@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { CX, CZ } from '../config/dimensions.js';
+import { LOW_POWER } from './device.js';
 
 const app = document.getElementById('app');
 
@@ -14,11 +15,19 @@ scene.fog = new THREE.Fog(0xeceae4, 600, 1400);
 
 export const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1.0, 1600);
 
-export const renderer = new THREE.WebGLRenderer({ antialias:true, logarithmicDepthBuffer:true,
-  powerPreference:'high-performance', precision:'highp' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// On low-power (mobile) devices drop antialias + logarithmicDepthBuffer — both
+// are per-fragment costs mobile GPUs struggle with; the log depth buffer in
+// particular disables early-Z and is a common cause of mobile stutter.
+export const renderer = new THREE.WebGLRenderer({ antialias:!LOW_POWER,
+  logarithmicDepthBuffer:!LOW_POWER,
+  powerPreference:'high-performance', precision:LOW_POWER?'mediump':'highp' });
+// Cap the pixel ratio hard on mobile (native DPR is often 3): the canvas paints
+// far fewer fragments while DOM labels stay crisp. Desktop keeps up to 2.
+renderer.setPixelRatio(Math.min(devicePixelRatio, LOW_POWER ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
+// Shadows are the second-biggest cost after the glass; the map re-renders every
+// frame though nothing moves. Off entirely on mobile.
+renderer.shadowMap.enabled = !LOW_POWER;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 // warmer, higher-contrast output than the flat default
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
